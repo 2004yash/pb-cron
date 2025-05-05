@@ -2,7 +2,7 @@ name: Schedule Leaderboard Update
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '15 13 * * 5'
   # Manual trigger option
   workflow_dispatch:
     inputs:
