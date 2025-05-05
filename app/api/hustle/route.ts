@@ -212,3 +212,52 @@ export async function POST() {
     );
   }
 }
+
+
+/**
+ * @swagger
+ * /api/hustle/fetch:
+ *   get:
+ *     summary: Fetches the latest and leaderboard data from the database.
+ *     description: Fetches the latest contest results and leaderboard rankings from the database.
+ *     tags:
+ *      - Hustle
+ *     responses:
+ *       200:
+ *         description: Successfully fetched hustle data
+ *       500:
+ *         description: Error while fetching data from the database.
+ */
+export async function GET() {
+  const dynamic = "force-dynamic";
+  try {
+    await connectMongoDB();
+    const latestDoc = await LatestModel.findOne({ name: "latest" });
+    const leaderboardDoc = await LeaderboardModel.findOne({
+      name: "leaderboard",
+    });
+
+    return new Response(
+      JSON.stringify({
+        message: "Fetched hustle data successfully",
+        data: {
+          latest: latestDoc,
+          leaderboard: leaderboardDoc,
+        },
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error: any) {
+    console.error("Database error:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to fetch hustle data",
+        details: error.message,
+      },
+      { status: 500 }
+    );
+  }
+}

@@ -1,103 +1,140 @@
-import Image from "next/image";
+"use client";
+export const dynamic = "force-dynamic";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Trophy, TableProperties } from "lucide-react";
+import LoadingBrackets from "@/components/loading-brackets";
 
-export default function Home() {
+interface Result {
+  rank: number;
+  name: string;
+  score: number;
+  consistency?: number[]; // For Rankings only
+}
+
+export default function ResultsTable() {
+  const [tab, setTab] = useState<"latest" | "rankings">("latest");
+  const [latestResults, setLatestResults] = useState<Result[]>([]);
+  const [rankings, setRankings] = useState<Result[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/hustle", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+        console.log(data);
+        if (response.ok && data?.data) {
+          const allDocs = data.data;
+          const latestData: Result[] = allDocs.latest.results || [];
+          const rankingsData: Result[] = allDocs.leaderboard.rankings || [];
+          const updatedAt: Date = new Date(allDocs.leaderboard.updatedAt);
+
+          setLatestResults(latestData);
+          setRankings(rankingsData);
+          setLastUpdated(updatedAt);
+        } else {
+          console.error("Error in response:", data.error);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch results:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const renderTable = (data: Result[], showConsistency: boolean) => (
+    <div className="overflow-x-auto shadow-xl rounded-xl border border-gray-700">
+      <table className="w-full text-sm text-left text-gray-300">
+        <thead className="text-xs uppercase bg-gray-800 text-[#00FF66]">
+          <tr>
+            <th className="px-6 py-4">Rank</th>
+            <th className="px-6 py-4">Name</th>
+            <th className="px-6 py-4">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((result, index) => (
+            <tr
+              key={index}
+              className="border-b bg-gray-900 border-gray-700 hover:bg-gray-800 transition-colors"
+            >
+              <td className="px-6 py-4 font-medium whitespace-nowrap text-[#00FF66]">
+                {result.rank}
+              </td>
+              <td className="px-6 py-4">{result.name}</td>
+              <td className="px-6 py-4 font-semibold">{result.score}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+      <div className="max-w-5xl mx-auto pt-14">
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-5xl font-bold mb-6 text-[#00FF66] flex items-center justify-center gap-4">
+            <Trophy className="w-12 h-12" /> PB HUSTLE
+          </h1>
+          <p className="text-gray-300 max-w-2xl mx-auto text-lg">
+            Track latest results and overall rankings in real-time
+          </p>
+        </motion.header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className="flex justify-center space-x-6 mb-8">
+          {(["latest", "rankings"] as const).map((tabName) => (
+            <button
+              key={tabName}
+              onClick={() => setTab(tabName)}
+              className={`
+                px-6 py-3 rounded-full flex items-center gap-3 transition-all text-lg font-semibold
+                ${
+                  tab === tabName
+                    ? "bg-[#00FF66] text-gray-900 shadow-lg"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }
+              `}
+            >
+              <TableProperties className="w-6 h-6" />
+              {tabName === "latest" ? "Latest Results" : "Rankings"}
+            </button>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <LoadingBrackets />
+          </div>
+        ) : (
+          <>
+            {lastUpdated && (
+              <div className="text-center mb-4 text-white">
+                Last updated: {lastUpdated.toLocaleString()}
+              </div>
+            )}
+            {renderTable(
+              tab === "latest" ? latestResults : rankings,
+              tab === "rankings"
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
