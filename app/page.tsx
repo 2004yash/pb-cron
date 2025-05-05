@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, TableProperties } from "lucide-react";
@@ -82,7 +81,7 @@ export default function ResultsTable() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
+    <div className="min-h-screen bg-black text-white p-6">
       <div className="max-w-5xl mx-auto pt-14">
         <motion.header
           initial={{ opacity: 0, y: -20 }}
