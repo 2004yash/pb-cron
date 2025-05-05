@@ -2,8 +2,7 @@ name: Schedule Leaderboard Update
 
 on:
   schedule:
-    # Runs at 12:45 UTC (6:15 PM IST) every day
-    - cron: "45 12 * * *"
+    - cron: "00 13 * * *"
   # Manual trigger option
   workflow_dispatch:
     inputs:
