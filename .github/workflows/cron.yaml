@@ -36,7 +36,7 @@ jobs:
           for i in {1..3}; do
             echo "Attempt $i of 3..."
             
-            response=$(curl -L -X POST "https://www.pointblank.club/api/hustle" \
+            response=$(curl -L -X POST "https://pb-cron-n47b.onrender.com/api/hustle" \
               -H "User-Agent: $USER_AGENT" \
               -H "Accept: application/json, text/plain, */*" \
               -H "Accept-Language: en-US,en;q=0.9" \
