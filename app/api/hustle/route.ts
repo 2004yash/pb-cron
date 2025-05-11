@@ -135,7 +135,7 @@ export async function POST() {
       (user, index) => ({
         rank: index + 1,
         name: user.username.replace(/\\/g, ""),
-        score: user.solvedProblems.length,
+        score: Object.keys(user.solvedProblems).length,
       })
     );
 
